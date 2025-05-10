@@ -1,0 +1,123 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Proxy</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="main-container">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="search"><i class="fas fa-magnifying-glass"></i> Search</button>
+      <button class="tab" data-tab="apps"><i class="fas fa-mobile-alt"></i> Apps</button>
+      <button class="tab" data-tab="games"><i class="fas fa-gamepad"></i> Games</button>
+      <button class="tab" data-tab="settings"><i class="fas fa-cog"></i> Settings</button>
+    </div>
+    <div class="content">
+      <div class="tab-content active" id="search">
+        <div class="search-container">
+          <h1 class="title">Cosmic Proxy</h1>
+          <input type="text" class="search-bar" placeholder="Search or enter a URL" maxlength="2048" title="Search" role="combobox" required>
+        </div>
+      </div>
+      <div class="tab-content" id="apps">
+        <div class="link-container">
+          <h2 class="tab-title"><i class="fas fa-mobile-alt"></i> Apps</h2>
+          <div class="link-grid" id="apps-grid"></div>
+        </div>
+      </div>
+      <div class="tab-content" id="games">
+        <div class="link-container">
+          <h2 class="tab-title"><i class="fas fa-gamepad"></i> Games</h2>
+          <div class="link-grid" id="games-grid"></div>
+        </div>
+      </div>
+      <div class="tab-content" id="settings">
+        <div class="settings-container">
+          <h3>Settings</h3>
+          <div class="sub-tab-bar">
+            <button class="sub-tab active" data-sub-tab="cloaking">Cloaking</button>
+            <button class="sub-tab" data-sub-tab="proxy">Proxy</button>
+          </div>
+          <div class="sub-tab-content active" id="cloaking">
+            <div class="form-group">
+              <label for="page-title">Page Title</label>
+              <input id="page-title" type="text" placeholder="Enter page title" value="Cosmic Proxy">
+            </div>
+            <div class="form-group">
+              <label for="page-favicon">Page Favicon URL</label>
+              <input id="page-favicon" type="text" placeholder="Enter favicon URL">
+            </div>
+            <div class="cloak-buttons">
+              <button class="cloak-button" id="ab-cloak">AB Cloak</button>
+              <button class="cloak-button" id="blob-cloak">Blob Cloak</button>
+              <button class="cloak-button" id="iframe-cloak">iFrame Cloak</button>
+            </div>
+          </div>
+          <div class="sub-tab-content" id="proxy">
+            <div class="form-group">
+              <label for="wisp-server">Wisp Server</label>
+              <input id="wisp-server" type="text" placeholder="Enter Wisp server URL">
+            </div>
+            <div class="form-group">
+              <label for="proxy-type">Proxy Type</label>
+              <select id="proxy-type">
+                <option value="ultraviolet">Ultraviolet</option>
+                <option value="scramjet">Scramjet</option>
+                <option value="meteor">Meteor</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="proxy-info">Cosmic Proxy v1.0 - Made by BitonicDev</p>
+  <script src="script.js"></script>
+</body>
+
+</html>
